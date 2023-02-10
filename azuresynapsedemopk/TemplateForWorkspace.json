@@ -221,7 +221,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"name": "[concat(parameters('workspaceName'), '/simplesqlscript')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -608,6 +608,44 @@
 							"    * Find the right time to release a model into the market based on the sales like quarterly, halfyearly etc. \n",
 							"    "
 						]
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook_diabetes_pyspark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"metadata": {
+					"language_info": {
+						"name": "python"
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"%%pyspark\n",
+							"blob_account_name = \"azureopendatastorage\"\n",
+							"blob_container_name = \"mlsamples\"\n",
+							"blob_relative_path = \"diabetes\"\n",
+							"blob_sas_token = r\"\"\n",
+							"# Allow SPARK to read from Blob remotely\n",
+							"wasbs_path = 'wasbs://%s@%s.blob.core.windows.net/%s' % (blob_container_name, blob_account_name, blob_relative_path)\n",
+							"\n",
+							"spark.conf.set(\n",
+							"    'fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name),\n",
+							"    blob_sas_token)\n",
+							"df = spark.read.parquet(wasbs_path)\n",
+							"display(df.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
