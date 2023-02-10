@@ -1,5 +1,5 @@
 {
-	"name": "SQL script 1",
+	"name": "simplesqlscript",
 	"properties": {
 		"content": {
 			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK     'https://azureopendatastorage.blob.core.windows.net/mlsamples/diabetes/*.parquet',\n        FORMAT = 'parquet'\n    ) AS [result];",
