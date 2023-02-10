@@ -5,20 +5,23 @@
 		"workspaceName": {
 			"value": "azuresynapsedemopk"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
 		"AzureBlobStorageinput_connectionString": {
 			"value": ""
 		},
 		"azuresynapsedemopk-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:azuresynapsedemopk.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"azuresynapsedemopk-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://adls2azuredemo.dfs.core.windows.net"
+		},
 		"sample-diabetes_sasUri": {
 			"value": ""
 		},
 		"us-labor-force-statistics_sasUri": {
 			"value": ""
-		},
-		"azuresynapsedemopk-WorkspaceDefaultStorage_properties_typeProperties_url": {
-			"value": "https://adls2azuredemo.dfs.core.windows.net"
 		}
 	}
 }
