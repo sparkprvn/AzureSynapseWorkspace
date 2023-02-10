@@ -1,0 +1,617 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "azuresynapsedemopk"
+		},
+		"AzureBlobStorageinput_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorageinput'"
+		},
+		"azuresynapsedemopk-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'azuresynapsedemopk-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:azuresynapsedemopk.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"sample-diabetes_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'sample-diabetes'"
+		},
+		"us-labor-force-statistics_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'us-labor-force-statistics'"
+		},
+		"azuresynapsedemopk-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adls2azuredemo.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/sample-diabetes')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('sample-diabetes_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/us-labor-force-statistics')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('us-labor-force-statistics_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/run_python_demo')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "run_python_example",
+						"type": "SynapseNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "python_examples",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"conf": {
+								"spark.dynamicAllocation.enabled": null,
+								"spark.dynamicAllocation.minExecutors": null,
+								"spark.dynamicAllocation.maxExecutors": null
+							},
+							"numExecutors": null
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-02-10T01:33:14Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/notebooks/python_examples')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorageinput')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorageinput_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/azuresynapsedemopk-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('azuresynapsedemopk-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/azuresynapsedemopk-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('azuresynapsedemopk-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sample-diabetes')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('sample-diabetes_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/us-labor-force-statistics')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('us-labor-force-statistics_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK     'https://azureopendatastorage.blob.core.windows.net/mlsamples/diabetes/*.parquet',\n        FORMAT = 'parquet'\n    ) AS [result];",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/python_examples')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "047234fe-613f-4da5-82e5-26735f273cfc"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "python"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "raw",
+						"source": [
+							""
+						]
+					},
+					{
+						"cell_type": "raw",
+						"source": [
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Converting stock price to Pounds\n",
+							"\n",
+							"#step 1: Read the file contents\n",
+							"stock_price = {}\n",
+							"with open(data_input) as file:\n",
+							"    for line in file:\n",
+							"        if 'Stock Price' in line:\n",
+							"            stock = line.strip()\n",
+							"\n",
+							"    #step 2: Split and convert \n",
+							"    stock_price = stock.split(':')\n",
+							"    stock_price = stock_price[1]\n",
+							"    stock_price = stock_price.split('$')\n",
+							"    stock_price = float(stock_price[1])\n",
+							"    \n",
+							"    conv_rate = 0.73       #assign a variable with the conversion rate\n",
+							"    \n",
+							"    #step 3: Calculate the stock price in GBP\n",
+							"    rate_in_pounds = conv_rate * stock_price\n",
+							"    rate_in_pounds = \"%.2f\" % rate_in_pounds\n",
+							"    \n",
+							"    print(\"Stock Price : £\" + rate_in_pounds)\n",
+							"    \n",
+							"    \n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Top Selling Product\n",
+							"\n",
+							"Method: Load all the products, split the data to fetch the units sold, sort them from high to low. \n",
+							"\n",
+							"#Step 1: Load the products data and generate the list of units sold.\n",
+							"\n",
+							"Read the input file for the products data using traditional methods of python by reading lines that are necessary.  \n",
+							"    \n",
+							"#step 2 - Split and sort\n",
+							"\n",
+							"Split them using native python code and generate a list of units sold for each product to sort them in a descending order.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# printing the best selling product from the data available\n",
+							"\n",
+							"import re\n",
+							"from decimal import Decimal\n",
+							"\n",
+							"quantity_sold = []\n",
+							"sorted_item_list = []\n",
+							"\n",
+							"#step 1 - Load data and generate product list with quantity\n",
+							"with open(data_input) as file:\n",
+							"    for line in file:\n",
+							"        if 'sold' in line:\n",
+							"            line = line.strip()\n",
+							"            product = line[line.find(\"(\")+1:line.find(\")\")]\n",
+							"            prod_quantity = product.split( )\n",
+							"            prod_quantity = float(prod_quantity[0])\n",
+							"            quantity_sold.append(prod_quantity)\n",
+							"\n",
+							"quantity_sold = sorted(quantity_sold)     "
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Top Selling Product Cont.\n",
+							"\n",
+							"Method: Match the sorted list generated with the raw list of products from the file, index them according to the sorted order and print the top sold product. \n",
+							"\n",
+							"Step 1: Compare and index the products accordingly\n",
+							"From the generated list of quantity sold, compare it with the raw products list from the file and index the products by matching the sold quantity. \n",
+							"   \n",
+							"\n",
+							"Step 2: Print the Top Product\n",
+							"From the sorted list the first product is the Top most. Output the same. \n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Compare the products and sort based on index\n",
+							"with open(data_input) as file:          \n",
+							"    for line in file:\n",
+							"        if 'sold' in line:  \n",
+							"            prod = re.findall('\\d+\\.\\d+',line)\n",
+							"            prod_sold = float(prod[0])\n",
+							"            if prod_sold in quantity_sold:\n",
+							"                index = quantity_sold.index(prod_sold)\n",
+							"                prod_tuple = (index,line)\n",
+							"                sorted_item_list.append(prod_tuple)\n",
+							"\n",
+							"#sort\n",
+							"product_list = sorted(sorted_item_list,reverse=True)\n",
+							"\n",
+							"# Step 2 - Print the Top Product\n",
+							"top_sold_prod = product_list[0]\n",
+							"top_sold_prod = top_sold_prod[1].split('(')\n",
+							"top_sold_prod = top_sold_prod[0]\n",
+							"\n",
+							"#output\n",
+							"print(\" Best-selling product : \" + top_sold_prod)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# First Year Sales - Data Analysis\n",
+							"\n",
+							"Method: For this data analysis part PANDAS is going to be used to read the data in an organized format and analyse. \n",
+							"\n",
+							"Step 1: Create a Pandas Dataframe with necessary columns from the input file, filter data based on the year and sort. \n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"import pandas as pd\n",
+							"\n",
+							"#step 1 - create a dataframe\n",
+							"df = pd.read_csv(data_input_mobiles)"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Retrieve necessary columns for the analysis\n",
+							"cols = ('yearofsales','price','model','units')\n",
+							"df_input  = pd.DataFrame(df, columns=cols)\n",
+							"\n",
+							"df_input  = df_input.loc[df['yearofsales'] == 1]           # Filter\n",
+							"df_input = df_input.sort_values('units',ascending=False)   # Sort\n",
+							"\n",
+							"# Rename the columns\n",
+							"df_input.rename(columns={'model':'Model Name','units':'First Year Sales(thousands)','price':'Introduction Price (£)'}, inplace=True)\n",
+							"df_sort_cols = ['Model Name','First Year Sales(thousands)','Introduction Price (£)']\n",
+							"df_sorted = pd.DataFrame(df_input, columns=df_sort_cols)\n",
+							"\n",
+							"# Output\n",
+							"print (df_sorted.to_string(index=False))\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Average First Year Sales\n",
+							"\n",
+							"The below code snippet is to calculate the average sales for the first year. \n",
+							"Native pandas function ( mean() ) is used to achieve the same.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"#Calcuate the mean value of the products sold\n",
+							"\n",
+							"avg_sales = df_sorted['First Year Sales(thousands)'].mean()\n",
+							"avg_sales = round(avg_sales/10)*10\n",
+							"print(\" Average first year sales : \", avg_sales,\" thousand\")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Bar Chart to visualize the data \n",
+							"\n",
+							"Method: Plotly library is used to visualize the data in the form of bar. \n",
+							"\n",
+							"Necessary grouping is done after the data is loaded into the dataframe.\n",
+							"Bar plot is loaded from the Plotly module to visualize the columns like Units sold,year. \n",
+							"Total number of units sold per year will be shown in the bar plot where the bar will contain the Model as the hover data in every bar. \n",
+							"Different colors are also used to represent the Models. \n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"scrolled": true
+						},
+						"source": [
+							"import pandas as pd\n",
+							"import plotly.express as px\n",
+							"\n",
+							"# Create necessary data\n",
+							"cols = ('year','units','model','gen')\n",
+							"df_plot  = pd.DataFrame(df, columns=cols)\n",
+							"df_plot.rename(columns={'year' : 'Year','units':'Units Sold (thousands)','gen':'Generation'}, inplace=True) \n",
+							"\n",
+							"# prepare the layout\n",
+							"title = \"ACME Tablet Sales\"\n",
+							"df_fig = px.bar(df_plot,\n",
+							"                x='Year',y='Units Sold (thousands)',\\\n",
+							"                title=title,\\\n",
+							"                color='Generation', \\\n",
+							"                hover_name='model',\\\n",
+							"                color_discrete_map={'1st':'blue','2nd':'red','3rd':'limegreen','4th':'blueviolet','5th':'orange','6th':'skyblue'})\n",
+							"df_fig.show()\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Sales Data Analysis - Part I - Total Sales by Model\n",
+							"\n",
+							"In this part of Data Analysis, the main focus is on finding out which tablet model took over the market with highest percentage of sales overall. \n",
+							"\n",
+							"This analysis will help in finding out the model most sold and release more models keeping in mind the interest of the customers. \n",
+							"For example, the below PIE Chart shows that Models like ACME TABLET 2, ACME TABLET A ULTRA and ACME TABLET 4 ULTRA are the top most products sold, these were haivng some interest in the customers. Releasing models based on the features these models have can help the industry to gain more customers and more sales. \n",
+							"\n",
+							"A Pie Chart is plotted using the columns units sold and model name where the number of units sold is greater that 2000. Rest all models that have less sales are combined as one. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Group necessary data\n",
+							"df_per_model = df.groupby('model')['units'].sum().reset_index().sort_values(by='units',ascending=False)\n",
+							"df_per_model.rename(columns={'units':'Total Units Sold'}, inplace=True) \n",
+							"df_per_model.loc[df_per_model['Total Units Sold'] < 2000, 'model'] = 'Other models'\n",
+							"\n",
+							"# Plot - PIE Chart\n",
+							"fig = px.pie(df_per_model, values='Total Units Sold', names='model', template='seaborn')\n",
+							"fig.update_layout(title_text='SALES BY MODEL', title_x=0.45)\n",
+							"fig.show()"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Sales Data Analysis - Part II - Span & Interval of Models\n",
+							"\n",
+							"In this part of data analysis, the span and interval of the models is being plotted to check the whereabouts of the data visually. \n",
+							"\n",
+							"From the plot we can see how long the models were in the market. A model, ACME Tablet 2 MINI was atleast for 6 years in the market and others being 2 to 3 years. \n",
+							"\n",
+							"With this analysis, we can come to an understanding whether a model is in the market for long time / short period. \n",
+							"\n",
+							"There would be a chance of improvising the same like keeping a model with good sales for more time. \n",
+							"\n",
+							"Note : The chart only represents the span of the model in the market. Further analysis can be done on comparing total sales with other models in the same span of time. \n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Find the Total Sales\n",
+							"df['TotalSales'] = df['units'].groupby(df['model']).transform('sum')\n",
+							"df.sort_values(\"year\",ascending=False)\n",
+							"\n",
+							"# Year wise data of models - introduced and discontinued\n",
+							"sales_cols = ['year','model','note','TotalSales']\n",
+							"\n",
+							"df_sales = pd.DataFrame(df,columns=sales_cols)\n",
+							"df_sales.rename(columns={'year':'Year','model':'Tablet Model'}, inplace=True) \n",
+							"notes = ['introduced','discontinued']\n",
+							"df_sales = df_sales[df_sales.note.isin(notes)]\n",
+							"df_top_sold = df_sales[df_sales['TotalSales'] > 2000]\n",
+							"\n",
+							"# Plot the data - box plot\n",
+							"time_plot = px.box(df_top_sold,x = 'Year',\n",
+							"                    y = 'Tablet Model',hover_data=[\"TotalSales\"]\n",
+							"                   )\n",
+							"time_plot.show()"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Additonal Points on Sales Data Analysis\n",
+							"\n",
+							"Data like sales related to the models quarterly, halfyearly when available can help in analysing the monthly sales / querterly sales and predict right time to release a new model. \n",
+							"\n",
+							"Also, further analysis can be done as below:\n",
+							"\n",
+							"    * whether the model being in the market for a long run has high no of sales or not?\n",
+							"    \n",
+							"    * if a model is only for a short period, does it have less no of sales?\n",
+							"    \n",
+							"    * if a model is discontinued in a short period, is it because of less no of sales?\n",
+							"    \n",
+							"    * Find the right time to release a model into the market based on the sales like quarterly, halfyearly etc. \n",
+							"    "
+						]
+					}
+				]
+			},
+			"dependsOn": []
+		}
+	]
+}
