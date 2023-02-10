@@ -20,11 +20,7 @@
 						"type": "DataFlowReference"
 					},
 					"staging": {
-						"linkedService": {
-							"referenceName": "azuresynapsedemopk-WorkspaceDefaultStorage",
-							"type": "LinkedServiceReference"
-						},
-						"folderPath": "pythonworkspace"
+						"folderPath": ""
 					},
 					"compute": {
 						"coreCount": 8,
