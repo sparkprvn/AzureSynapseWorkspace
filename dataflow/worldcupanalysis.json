@@ -13,10 +13,6 @@
 					"description": "Add wc groups"
 				},
 				{
-					"dataset": {
-						"referenceName": "DelimitedText1",
-						"type": "DatasetReference"
-					},
 					"name": "wcsquad",
 					"description": "Add squad wc"
 				}
@@ -53,21 +49,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> wcgroups",
-				"source(output(",
-				"          {1} as string,",
-				"          Ecuador1 as string,",
-				"          Goalkeeper as string,",
-				"          {Hern�n Gal�ndez} as string,",
-				"          {35} as string,",
-				"          {12} as string,",
-				"          {06} as string,",
-				"          {07} as string,",
-				"          Ecuador8 as string,",
-				"          Aucas as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> wcsquad",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> wcsquad",
 				"wcgroups, squaddata join(Team == SquadTeam,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
