@@ -225,6 +225,57 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/worldcupdatatransform')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "wcanalysisdf",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "worldcupanalysis",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"wcgroups": {},
+									"wcsquad": {},
+									"savedata": {}
+								}
+							},
+							"staging": {
+								"folderPath": ""
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/worldcupanalysis')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_n8i')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -318,6 +369,100 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/outputwc')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresynapsedemopk-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "pythonworkspace"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/azuresynapsedemopk-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/squadworldcup')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresynapsedemopk-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "worldcupsquad",
+						"fileSystem": "pythonworkspace"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/azuresynapsedemopk-WorkspaceDefaultStorage')]"
 			]
 		},
 		{
@@ -513,6 +658,150 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/worldcupanalysis')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "worldcupgroup",
+								"type": "DatasetReference"
+							},
+							"name": "wcgroups",
+							"description": "Add wc groups"
+						},
+						{
+							"dataset": {
+								"referenceName": "squadworldcup",
+								"type": "DatasetReference"
+							},
+							"name": "wcsquad",
+							"description": "Add squad wc"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "outputwc",
+								"type": "DatasetReference"
+							},
+							"name": "savedata"
+						}
+					],
+					"transformations": [
+						{
+							"name": "groupsquad"
+						},
+						{
+							"name": "squadgoals",
+							"description": "Add goals agg by squad"
+						},
+						{
+							"name": "casttypes"
+						},
+						{
+							"name": "squaddata"
+						},
+						{
+							"name": "selectsquad"
+						},
+						{
+							"name": "castsquaddata"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Group as string,",
+						"          Team as string,",
+						"          {FIFA Ranking} as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> wcgroups",
+						"source(output(",
+						"          Column_1 as string,",
+						"          Column_2 as string,",
+						"          Column_3 as string,",
+						"          Column_4 as string,",
+						"          Column_5 as string,",
+						"          Column_6 as string,",
+						"          Column_7 as string,",
+						"          Column_8 as string,",
+						"          Column_9 as string,",
+						"          Column_10 as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> wcsquad",
+						"wcgroups, squaddata join(Team == SquadTeam,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> groupsquad",
+						"casttypes aggregate(groupBy(Player),",
+						"     {WC Goals} = avg({WC Goals})) ~> squadgoals",
+						"groupsquad cast(output(",
+						"          {WC Goals} as integer '000'",
+						"     ),",
+						"     errors: true) ~> casttypes",
+						"selectsquad select(mapColumn(",
+						"          ID,",
+						"          SquadTeam,",
+						"          Position,",
+						"          Player,",
+						"          Age,",
+						"          Caps,",
+						"          Goals,",
+						"          {WC Goals} = WCGoals,",
+						"          League,",
+						"          Club",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> squaddata",
+						"wcsquad select(mapColumn(",
+						"          ID = Column_1,",
+						"          SquadTeam = Column_2,",
+						"          Position = Column_3,",
+						"          Player = Column_4,",
+						"          Age = Column_5,",
+						"          Caps = Column_6,",
+						"          Goals = Column_7,",
+						"          WCGoals = Column_8,",
+						"          League = Column_9,",
+						"          Club = Column_10",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectsquad",
+						"squaddata cast(output(",
+						"          ID as integer '000',",
+						"          Position as string",
+						"     ),",
+						"     errors: true) ~> castsquaddata",
+						"squadgoals sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Column_1 as string,",
+						"          Column_2 as string,",
+						"          Column_3 as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> savedata"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/worldcupgroup')]",
+				"[concat(variables('workspaceId'), '/datasets/squadworldcup')]",
+				"[concat(variables('workspaceId'), '/datasets/outputwc')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
