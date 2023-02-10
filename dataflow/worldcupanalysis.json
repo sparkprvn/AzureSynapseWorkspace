@@ -13,12 +13,20 @@
 					"description": "Add wc groups"
 				},
 				{
+					"dataset": {
+						"referenceName": "squadworldcup",
+						"type": "DatasetReference"
+					},
 					"name": "wcsquad",
 					"description": "Add squad wc"
 				}
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "outputwc",
+						"type": "DatasetReference"
+					},
 					"name": "savedata"
 				}
 			],
@@ -37,7 +45,10 @@
 					"name": "squaddata"
 				},
 				{
-					"name": "cast1"
+					"name": "selectsquad"
+				},
+				{
+					"name": "castsquaddata"
 				}
 			],
 			"scriptLines": [
@@ -49,8 +60,21 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> wcgroups",
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> wcsquad",
+				"source(output(",
+				"          Column_1 as string,",
+				"          Column_2 as string,",
+				"          Column_3 as string,",
+				"          Column_4 as string,",
+				"          Column_5 as string,",
+				"          Column_6 as string,",
+				"          Column_7 as string,",
+				"          Column_8 as string,",
+				"          Column_9 as string,",
+				"          Column_10 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> wcsquad",
 				"wcgroups, squaddata join(Team == SquadTeam,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -62,23 +86,46 @@
 				"          {WC Goals} as integer '000'",
 				"     ),",
 				"     errors: true) ~> casttypes",
-				"wcsquad select(mapColumn(",
+				"selectsquad select(mapColumn(",
 				"          ID,",
-				"          SquadTeam = Team,",
+				"          SquadTeam,",
 				"          Position,",
 				"          Player,",
 				"          Age,",
 				"          Caps,",
 				"          Goals,",
-				"          {WC Goals},",
+				"          {WC Goals} = WCGoals,",
 				"          League,",
 				"          Club",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> squaddata",
-				"squaddata cast(errors: true) ~> cast1",
+				"wcsquad select(mapColumn(",
+				"          ID = Column_1,",
+				"          SquadTeam = Column_2,",
+				"          Position = Column_3,",
+				"          Player = Column_4,",
+				"          Age = Column_5,",
+				"          Caps = Column_6,",
+				"          Goals = Column_7,",
+				"          WCGoals = Column_8,",
+				"          League = Column_9,",
+				"          Club = Column_10",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectsquad",
+				"squaddata cast(output(",
+				"          ID as integer '000',",
+				"          Position as string",
+				"     ),",
+				"     errors: true) ~> castsquaddata",
 				"squadgoals sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          Column_1 as string,",
+				"          Column_2 as string,",
+				"          Column_3 as string",
+				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> savedata"
 			]
