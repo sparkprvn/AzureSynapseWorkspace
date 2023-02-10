@@ -1,5 +1,5 @@
 {
-	"name": "Notebook 1",
+	"name": "pyspark_wc_goals",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "c880e869-4245-402b-baae-4c466f7d073b"
+				"spark.autotune.trackingId": "a50b9d14-6f83-4f82-8e0b-06c8746006f2"
 			}
 		},
 		"metadata": {
