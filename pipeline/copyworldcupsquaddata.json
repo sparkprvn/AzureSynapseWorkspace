@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_n8i",
+				"name": "copysquaddataset",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -64,7 +64,7 @@
 				]
 			},
 			{
-				"name": "Copy data1",
+				"name": "copygroupdataset",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
