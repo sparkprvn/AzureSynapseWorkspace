@@ -1,0 +1,30 @@
+{
+	"name": "run_python_demo",
+	"properties": {
+		"activities": [
+			{
+				"name": "run_python_example",
+				"type": "SynapseNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebook": {
+						"referenceName": "python_examples",
+						"type": "NotebookReference"
+					},
+					"snapshot": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-02-10T01:33:14Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
